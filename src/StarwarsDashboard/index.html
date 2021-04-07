@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+
+    <title>Dashboard</title>
+</head>
+<body>
+    <div class="container py-3">
+        <header class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
+          <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+            <span class="fs-4">Dashboard Games</span>
+          </a>
+      
+          <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+            <a class="me-3 py-2 text-dark text-decoration-none" href="#">Home</a>
+          </nav>
+        </header>
+      
+        <div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+          <h1 class="display-4 fw-normal">Events</h1>
+          <p class="fs-5 text-muted">Samples.</p>
+        </div>
+      
+        <main id="app">
+            
+          <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+            
+            
+            <div class="col" v-for="g in games">
+              <div class="card mb-4 rounded-3 shadow-sm">
+                <div class="card-header py-3">
+                  <h4 class="my-0 fw-normal">{{ g.game }} </h4>
+                </div>
+                <div class="card-body">
+                  <span>Events</span>
+                  <ul class="list-unstyled mt-3 mb-4" v-for="e in g.events">
+                    <li>{{ e.eventName }} => {{ e.count }}</li>
+                  </ul>
+                  <button type="button" class="w-100 btn btn-lg btn-outline-primary">Go to the game</button>
+                </div>
+              </div>
+            </div>
+          </div>
+      
+         
+        </main>
+      
+        <footer class="pt-4 my-md-5 pt-md-5 border-top">
+          <div class="row">
+            <div class="col-12 col-md">
+              <small class="d-block mb-3 text-muted">© 2021</small>
+            </div>
+           
+          
+            
+          </div>
+        </footer>
+      </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+   
+    <script>
+        window.app = new Vue({
+            el: '#app',
+            data: {
+                games: []
+            }
+        })
+
+        let ws = new WebSocket("wss://localhost:5001/dashboard");
+
+        ws.onopen = function(e) {
+            console.log("[open] Connection established");
+            ws.send("dummy");
+        };
+
+        ws.onmessage = function(event) {
+            var games = JSON.parse(event.data);
+            window.app._data.games = games;
+            console.log(`[message] Data received from server`);
+            
+            setTimeout(function(){ ws.send("dummy"); }, 1000);
+        };
+
+        ws.onclose = function(event) {
+            if (event.wasClean) {
+                console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+            } else {
+                // e.g. server process killed or network down
+                // event.code is usually 1006 in this case
+                console.log('[close] Connection died');
+            }
+        };
+
+        ws.onerror = function(error) {
+            console.log(`[error] ${error.message}`);
+        };
+
+        
+    </script>
+</body>
+</html>
